@@ -41,17 +41,51 @@ Cuando dos centros pueden despachar sobre la misma flota y **se corta la comunic
 | Confirmaciones que se revierten después | Despachador, jefe de guardia | Consistencia |
 | Falta de trazabilidad tras la falla | Jefe de guardia | Observabilidad |
 
-## Qué existe hoy
+## Estado del arte
 
-Los centros de emergencia usan sistemas **CAD** (despacho asistido por computadora). Los productos del mercado resuelven la resiliencia sobre todo con **redundancia del sistema central y conmutación a un respaldo**:
+### El sistema de referencia: el CAD
 
-- **Motorola PremierOne CAD** ofrece un CAD completo en la nube como recuperación ante desastres y un cliente web de continuidad.
-- **Hexagon HxGN OnCall Dispatch** ofrece diseño redundante en la nube y un cliente de despacho de contingencia.
-- Existen enfoques de **operación local**: una patente de CAD (US8433763) donde las estaciones intercambian datos entre sí si cae el gestor central, y CAD con modo offline.
+Los centros de emergencia usan un **CAD (Computer-Aided Dispatch, despacho asistido por computadora)** para registrar incidentes, mantener el estado de las unidades y despacharlas. En Perú, los términos de referencia del Proyecto 911 exigen un CAD con subsistema de despacho, el estándar **NENA i3 (NG911)** y una disponibilidad de **99.99 % mensual** para la recepción de llamadas. Ese requisito cubre la recepción, no la coordinación del despacho entre centros, que es donde se ubica esta propuesta.
 
-En la base técnica, la **linealizabilidad** define formalmente "una ambulancia, una reserva confirmada"; el **consenso Raft** permite que solo el lado con mayoría confirme; y la **replicación optimista** permite operar sin coordinación a costa de conflictos.
+### Situación actual en Lima
 
-**Brecha:** la documentación pública revisada describe la continuidad del sistema completo, pero no mide qué ocurre con **reservas concurrentes de la misma unidad** cuando **dos centros activos** quedan incomunicados. Esa es la pregunta que aborda esta propuesta.
+| Central | Sistemas que usa hoy |
+|---|---|
+| **106 – SAMU** | Aplicativo SAMU y sistema DISAMU (registro, regulación, despacho, gestión de ambulancias); geolocalización TETRA y GPS |
+| **105 – PNP** | GEMA (gestión multiagencia), SICOM (recepción y despacho), GIS/AVL |
+| **116 – Bomberos** | Sistema de Gestión Operativa (propio), despacho y cartografía |
+
+Estas plataformas **no están integradas** entre sí.
+
+### Soluciones del mercado
+
+| Solución | Enfoque de resiliencia | Equivale a |
+|---|---|---|
+| **Motorola PremierOne CAD** | CAD completo en la nube como recuperación ante desastres (DRaaS) y cliente web de continuidad | A1 con respaldo |
+| **Hexagon HxGN OnCall Dispatch** | Diseño redundante y distribuido en la nube con geodiversidad; cliente de despacho de contingencia | A1 con respaldo |
+| **Stratus ftServer (Allegheny County)** | Hardware tolerante a fallas en sitio principal y de recuperación, sincronizados casi en tiempo real | A1 con alta disponibilidad |
+| **Patente US8433763** | Si cae el gestor central, las estaciones intercambian los datos críticos directamente entre sí | Cercano a A3 |
+| **CAD con modo offline** | Se siguen registrando incidentes sin conexión y se sincroniza después | A3 |
+
+**Patrón dominante:** redundancia del sistema central y conmutación a un respaldo. Resuelven "¿cómo sigue funcionando el CAD si cae el centro de datos?", no "¿qué pasa si dos centros activos reservan la misma unidad sin poder comunicarse?".
+
+### Base técnica
+
+| Concepto | Aporte a la propuesta | Referencia |
+|---|---|---|
+| **Linealizabilidad** | Define formalmente "una ambulancia, una reserva confirmada" | Herlihy y Wing (1990) |
+| **Teorema CAP** | Ante una partición, elegir entre consistencia y disponibilidad: el dilema entre A2 y A3 | Gilbert y Lynch (2002) |
+| **PACELC** | Sin partición, hay trade-off entre latencia y consistencia: justifica H4 | Abadi (2012) |
+| **Consenso Raft** | Líder y quórum: solo el lado con mayoría confirma. Base de A2 | Ongaro y Ousterhout (2014) |
+| **Replicación optimista / CRDTs** | Operar sin coordinación y converger después, sin evitar por sí sola la doble reserva. Base de A3 | Shapiro et al. (2011) |
+
+### Brecha
+
+- Las soluciones comerciales documentan la **continuidad del sistema completo** (failover, respaldo en la nube), pero en la documentación pública revisada no hay mediciones de **reservas concurrentes de la misma unidad** cuando **dos centros activos** quedan incomunicados.
+- La patente y los modos offline muestran que el mercado ya acepta operar sin servidor central, pero sin cuantificar el riesgo de conflicto.
+- En Lima, centrales sin integración y una propuesta de despacho descentralizado hacen pertinente evaluar cómo coordinar centros activos antes de integrarlos.
+
+Esta brecha es la que aborda la propuesta.
 
 ## Pregunta e hipótesis
 
@@ -143,3 +177,6 @@ Seleccionadas en [Estudio.md](Estudio.md); cada una representa un enfoque real d
 
 - **E2 (Semana 14):** arquitectura básica de las tres alternativas, métricas y umbrales finales, y línea base con A1.
 - **E3 (Semana 15):** resultados de todos los escenarios, arquitectura recomendada y paper final.
+
+
+
