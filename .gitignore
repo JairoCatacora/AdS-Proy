@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# Resultados: se versionan resultados.csv, las tablas, hipotesis.md, figuras/ y
+# entorno.json. NO se versionan los logs crudos ni lo descartado.
+resultados/logs/
+resultados/descartados/
+resultados/**/logs/
+resultados/verificacion/
+resultados/investigacion/
+resultados/prueba*/
+resultados/**/corrida.log

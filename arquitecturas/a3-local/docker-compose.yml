@@ -1,0 +1,51 @@
+# A3 — Local con reconciliación (SQLite por centro; sincronizador dentro del servicio)
+#
+# Plan de direcciones:
+#   a3_net_ab  10.3.12.0/24   despacho-a .10   despacho-b .20   (único enlace que usa A3)
+#   net_ctl    los dos despachos
+# (Cada sitio tiene un solo contenedor, así que no hacen falta redes locales de sitio.)
+
+x-servicio: &servicio
+  build:
+    context: ../..
+    dockerfile: arquitecturas/Dockerfile.servicio
+  image: banco/servicio:latest
+  cap_add: [NET_ADMIN]
+  restart: "no"
+
+services:
+  a3-despacho-a:
+    <<: *servicio
+    container_name: a3-despacho-a
+    command: uvicorn main:app --app-dir /app/arquitecturas/a3-local/despacho --host 0.0.0.0 --port 8000
+    environment:
+      CENTRO: A
+      PAR_URL: http://10.3.12.20:8000       # despacho-b por net_ab
+      SYNC_INMEDIATO: ${A3_SYNC_INMEDIATO:-0}
+    networks:
+      a3_net_ab: {ipv4_address: 10.3.12.10}
+      net_ctl: {}
+
+  a3-despacho-b:
+    <<: *servicio
+    container_name: a3-despacho-b
+    command: uvicorn main:app --app-dir /app/arquitecturas/a3-local/despacho --host 0.0.0.0 --port 8000
+    environment:
+      CENTRO: B
+      PAR_URL: http://10.3.12.10:8000       # despacho-a por net_ab
+      SYNC_INMEDIATO: ${A3_SYNC_INMEDIATO:-0}
+    networks:
+      a3_net_ab: {ipv4_address: 10.3.12.20}
+      net_ctl: {}
+
+networks:
+  a3_net_ab:
+    name: a3_net_ab
+    internal: true
+    ipam: {config: [{subnet: 10.3.12.0/24}]}
+  # Red de control compartida: debe tener EXACTAMENTE la misma definición en
+  # experimento/docker-compose.yml y en cada arquitectura (así `include` la acepta).
+  net_ctl:
+    name: net_ctl
+    internal: true
+    ipam: {config: [{subnet: 10.99.0.0/16, ip_range: 10.99.128.0/17}]}  # .0.2 = orquestador; el resto, dinámico

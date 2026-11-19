@@ -1,0 +1,6 @@
+# Entorno de desarrollo local (pruebas, orquestador fuera de Docker y análisis)
+-e ./comun
+pytest>=8
+httpx>=0.27
+pydantic>=2.7
+numpy>=2

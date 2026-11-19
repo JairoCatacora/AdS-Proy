@@ -1,0 +1,135 @@
+# A2 — Replicado con quórum (etcd v3.5, 3 réplicas)
+#
+# Plan de direcciones (10.2.<enlace>.0/24):
+#   a2_net_ab      10.2.12.0/24   etcd1 .11   etcd2 .21          (peers etcd1–etcd2)
+#   a2_net_ad      10.2.14.0/24   etcd1 .11   etcd3 .41          (peers etcd1–etcd3)
+#   a2_net_bd      10.2.24.0/24   etcd2 .21   etcd3 .41          (peers etcd2–etcd3)
+#   a2_net_site_a  10.2.101.0/24  despacho-a .10  etcd1 .11      (red local del sitio A)
+#   a2_net_site_b  10.2.102.0/24  despacho-b .20  etcd2 .21      (red local del sitio B)
+#   net_ctl        todos (el orquestador consulta estado y mueve el líder)
+#
+# Cada miembro anuncia como peer URLs sus IPs en las redes de enlace. Un peer
+# prueba las URLs anunciadas y solo logra conectar por la red que comparte.
+# Cada despacho usa SOLO su réplica local, por la red de su sitio.
+
+x-servicio: &servicio
+  build:
+    context: ../..
+    dockerfile: arquitecturas/Dockerfile.servicio
+  image: banco/servicio:latest
+  cap_add: [NET_ADMIN]
+  restart: "no"
+
+x-etcd: &etcd
+  build:
+    context: ../..
+    dockerfile: arquitecturas/a2-quorum/etcd/Dockerfile
+  image: banco/etcd:3.5.36
+  cap_add: [NET_ADMIN]
+  restart: "no"
+
+# Configuración común del clúster (timeouts por defecto: heartbeat 100 ms, elección 1000 ms).
+x-etcd-env: &etcd-env
+  ETCD_INITIAL_CLUSTER: >-
+    etcd1=http://10.2.12.11:2380,etcd1=http://10.2.14.11:2380,etcd2=http://10.2.12.21:2380,etcd2=http://10.2.24.21:2380,etcd3=http://10.2.14.41:2380,etcd3=http://10.2.24.41:2380
+  ETCD_INITIAL_CLUSTER_STATE: new
+  ETCD_INITIAL_CLUSTER_TOKEN: banco-a2
+  ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
+  ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+  ETCD_HEARTBEAT_INTERVAL: "100"
+  ETCD_ELECTION_TIMEOUT: "1000"
+  ETCD_PRE_VOTE: "true"        # un nodo que vuelve del lado minoritario no fuerza elecciones
+  ETCD_DATA_DIR: /var/lib/etcd
+  ETCD_LOG_LEVEL: ${A2_ETCD_LOG_LEVEL:-warn}   # info solo para diagnosticar
+
+services:
+  a2-etcd1:
+    <<: *etcd
+    container_name: a2-etcd1
+    environment:
+      <<: *etcd-env
+      ETCD_NAME: etcd1
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: http://10.2.12.11:2380,http://10.2.14.11:2380
+      ETCD_ADVERTISE_CLIENT_URLS: http://10.2.101.11:2379
+    networks:
+      a2_net_ab: {ipv4_address: 10.2.12.11}
+      a2_net_ad: {ipv4_address: 10.2.14.11}
+      a2_net_site_a: {ipv4_address: 10.2.101.11}
+      net_ctl: {}
+
+  a2-etcd2:
+    <<: *etcd
+    container_name: a2-etcd2
+    environment:
+      <<: *etcd-env
+      ETCD_NAME: etcd2
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: http://10.2.12.21:2380,http://10.2.24.21:2380
+      ETCD_ADVERTISE_CLIENT_URLS: http://10.2.102.21:2379
+    networks:
+      a2_net_ab: {ipv4_address: 10.2.12.21}
+      a2_net_bd: {ipv4_address: 10.2.24.21}
+      a2_net_site_b: {ipv4_address: 10.2.102.21}
+      net_ctl: {}
+
+  a2-etcd3:
+    <<: *etcd
+    container_name: a2-etcd3
+    environment:
+      <<: *etcd-env
+      ETCD_NAME: etcd3
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: http://10.2.14.41:2380,http://10.2.24.41:2380
+      ETCD_ADVERTISE_CLIENT_URLS: http://10.2.14.41:2379
+    networks:
+      a2_net_ad: {ipv4_address: 10.2.14.41}
+      a2_net_bd: {ipv4_address: 10.2.24.41}
+      net_ctl: {}
+
+  a2-despacho-a:
+    <<: *servicio
+    container_name: a2-despacho-a
+    command: uvicorn main:app --app-dir /app/arquitecturas/a2-quorum/despacho --host 0.0.0.0 --port 8000
+    environment:
+      CENTRO: A
+      ETCD_URL: http://10.2.101.11:2379     # etcd1, por la red local del sitio A
+    networks:
+      a2_net_site_a: {ipv4_address: 10.2.101.10}
+      net_ctl: {}
+
+  a2-despacho-b:
+    <<: *servicio
+    container_name: a2-despacho-b
+    command: uvicorn main:app --app-dir /app/arquitecturas/a2-quorum/despacho --host 0.0.0.0 --port 8000
+    environment:
+      CENTRO: B
+      ETCD_URL: http://10.2.102.21:2379     # etcd2, por la red local del sitio B
+    networks:
+      a2_net_site_b: {ipv4_address: 10.2.102.20}
+      net_ctl: {}
+
+networks:
+  a2_net_ab:
+    name: a2_net_ab
+    internal: true
+    ipam: {config: [{subnet: 10.2.12.0/24}]}
+  a2_net_ad:
+    name: a2_net_ad
+    internal: true
+    ipam: {config: [{subnet: 10.2.14.0/24}]}
+  a2_net_bd:
+    name: a2_net_bd
+    internal: true
+    ipam: {config: [{subnet: 10.2.24.0/24}]}
+  a2_net_site_a:
+    name: a2_net_site_a
+    internal: true
+    ipam: {config: [{subnet: 10.2.101.0/24}]}
+  a2_net_site_b:
+    name: a2_net_site_b
+    internal: true
+    ipam: {config: [{subnet: 10.2.102.0/24}]}
+  # Red de control compartida: debe tener EXACTAMENTE la misma definición en
+  # experimento/docker-compose.yml y en cada arquitectura (así `include` la acepta).
+  net_ctl:
+    name: net_ctl
+    internal: true
+    ipam: {config: [{subnet: 10.99.0.0/16, ip_range: 10.99.128.0/17}]}  # .0.2 = orquestador; el resto, dinámico

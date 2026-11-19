@@ -1,0 +1,26 @@
+# Imagen común de los servicios en Python (despachos de A1/A2/A3 y central-api).
+# Se construye desde la raíz del repositorio para poder copiar `comun/`.
+FROM python:3.12-slim
+
+# iproute2: `tc netem` e `ip addr` (inyector de fallas)
+# iputils-ping: verificación de cortes; iptables: aislamiento de net_ctl
+# (Los repositorios de Debian se usan por HTTPS: en algunas redes el HTTP plano
+#  es interceptado por un proxy y apt falla.)
+RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends iproute2 iputils-ping iptables curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY arquitecturas/requirements-servicio.txt /tmp/req.txt
+RUN pip install --no-cache-dir -r /tmp/req.txt
+
+COPY comun /app/comun
+RUN pip install --no-cache-dir /app/comun
+
+COPY arquitecturas /app/arquitecturas
+
+# Aislamiento de net_ctl (ver aislar_ctl.sh). `sed` quita posibles CRLF de Windows.
+COPY arquitecturas/aislar_ctl.sh /usr/local/bin/aislar_ctl.sh
+RUN sed -i 's/\r$//' /usr/local/bin/aislar_ctl.sh && chmod +x /usr/local/bin/aislar_ctl.sh
+ENTRYPOINT ["/usr/local/bin/aislar_ctl.sh"]

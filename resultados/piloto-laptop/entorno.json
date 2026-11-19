@@ -1,0 +1,38 @@
+{
+  "registrado": "2026-11-19T16:02:15+0000",
+  "cpu": {
+    "modelo": "Intel(R) Core(TM) i5-10300H CPU @ 2.50GHz",
+    "cpus_visibles_en_docker": 8,
+    "cpus_asignadas_a_docker": 8
+  },
+  "ram_asignada_a_docker_gb": 7.69,
+  "docker": {
+    "servidor": "29.6.1",
+    "cliente": "27.5.1",
+    "sistema": "Docker Desktop",
+    "kernel": "6.6.87.2-microsoft-standard-WSL2"
+  },
+  "etcd": "3.5.36",
+  "postgresql": "postgres (PostgreSQL) 16.16 (Debian 16.16-1.pgdg13+1)",
+  "python": {
+    "orquestador": "3.12.16",
+    "servicios": "Python 3.12.16"
+  },
+  "imagenes": {
+    "banco/servicio:latest": "sha256:77413f3c61ccfc9056e2e2a7b5cff11d2c6f9fa7b66f8537a5066538a1af2ef5",
+    "banco/etcd:3.5.36": "sha256:6c6f3d931c813cc6527bf4b3fb1e0ae972101590717eb4f6b47b93473bc2f369",
+    "banco/orquestador:latest": "sha256:d8a31ce36016ba74abb5746b94ba696f3000b3c4b69d393752bc7ebd3fef1d34",
+    "postgres:16": "sha256:2fd2c185c3dc19e21db2174dce9677cbe6c78dfa6b50d7a3751cea87d95d16b3"
+  },
+  "nota": "El sistema operativo y el modelo del equipo anfitrión (Windows) no son visibles desde Docker; agregarlos a mano en la tabla del paper.",
+  "parametros": {
+    "arq": "A1,A2,A3",
+    "escenarios": "P0,P1,P2,P3,P4",
+    "rep": 30,
+    "sin_conflicto": 10,
+    "semilla": 2026,
+    "piloto": true,
+    "p0": false,
+    "dir": null
+  }
+}

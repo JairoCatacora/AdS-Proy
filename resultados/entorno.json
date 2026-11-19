@@ -1,0 +1,164 @@
+{
+  "tipo": "p0",
+  "commit": "3a9a93b5731e98e426117b9a03f77c31160305e4",
+  "nota_registro": "tipo y commit agregados desde el host al terminar la P0",
+  "registrado": "2026-11-19T18:20:40+0000",
+  "cpu": {
+    "modelo": "12th Gen Intel(R) Core(TM) i7-12700KF",
+    "cpus_visibles_en_docker": 20,
+    "cpus_asignadas_a_docker": 20
+  },
+  "ram_asignada_a_docker_gb": 7.68,
+  "docker": {
+    "servidor": "29.9.3",
+    "cliente": "27.5.1",
+    "sistema": "Docker Desktop",
+    "kernel": "6.18.58.1-microsoft-standard-WSL2"
+  },
+  "etcd": "3.5.36",
+  "postgresql": "postgres (PostgreSQL) 16.16 (Debian 16.16-1.pgdg13+1)",
+  "python": {
+    "orquestador": "3.12.16",
+    "servicios": "Python 3.12.16"
+  },
+  "imagenes": {
+    "banco/servicio:latest": "sha256:a16f41334df944a4d43108d83f6bdd6699746b873f2cb7c8d6d016a1ecd020c7",
+    "banco/etcd:3.5.36": "sha256:72f63a4e0860d8a42407ebe6ad65066af13f5f72d2267da2c0bcc8e5554e7d25",
+    "banco/orquestador:latest": "sha256:9e2767b317fd8952907992eade477930c0faa05270c16a485d12f94c59c4263f",
+    "postgres:16": "sha256:3950ad7c3148ca2175ef1b6c36c9efbf78957ae8fbe8b3a5d7c35af50500382f"
+  },
+  "nota": "El sistema operativo y el modelo del equipo anfitrión (Windows) no son visibles desde Docker; agregarlos a mano en la tabla del paper.",
+  "parametros": {
+    "arq": "A1,A2,A3",
+    "escenarios": "P0,P1,P2,P3,P4",
+    "rep": 30,
+    "sin_conflicto": 10,
+    "semilla": 2026,
+    "piloto": false,
+    "p0": true,
+    "dir": null
+  },
+  "entradas_posteriores": [
+    {
+      "tipo": "corrida",
+      "commit": "e8a7b74b3fbf5e99eff7323f15b86bc04f31d8c2",
+      "registrado": "2026-11-19T18:39:08+0000",
+      "cpu": {
+        "modelo": "12th Gen Intel(R) Core(TM) i7-12700KF",
+        "cpus_visibles_en_docker": 20,
+        "cpus_asignadas_a_docker": 20
+      },
+      "ram_asignada_a_docker_gb": 7.68,
+      "docker": {
+        "servidor": "29.9.3",
+        "cliente": "27.5.1",
+        "sistema": "Docker Desktop",
+        "kernel": "6.18.58.1-microsoft-standard-WSL2"
+      },
+      "etcd": "3.5.36",
+      "postgresql": "postgres (PostgreSQL) 16.16 (Debian 16.16-1.pgdg13+1)",
+      "python": {
+        "orquestador": "3.12.16",
+        "servicios": "Python 3.12.16"
+      },
+      "imagenes": {
+        "banco/servicio:latest": "sha256:a16f41334df944a4d43108d83f6bdd6699746b873f2cb7c8d6d016a1ecd020c7",
+        "banco/etcd:3.5.36": "sha256:72f63a4e0860d8a42407ebe6ad65066af13f5f72d2267da2c0bcc8e5554e7d25",
+        "banco/orquestador:latest": "sha256:9e2767b317fd8952907992eade477930c0faa05270c16a485d12f94c59c4263f",
+        "postgres:16": "sha256:3950ad7c3148ca2175ef1b6c36c9efbf78957ae8fbe8b3a5d7c35af50500382f"
+      },
+      "nota": "El sistema operativo y el modelo del equipo anfitrión (Windows) no son visibles desde Docker; agregarlos a mano en la tabla del paper.",
+      "parametros": {
+        "arq": "A1,A2,A3",
+        "escenarios": "P0,P1,P2,P3,P4",
+        "rep": 30,
+        "sin_conflicto": 10,
+        "semilla": 2026,
+        "piloto": false,
+        "p0": false,
+        "dir": null
+      },
+      "nota_registro": "commit corregido desde el host: el comando se lanzó desde la copia vieja en OneDrive (HEAD b4543f0), pero el contenedor ejecuta el código de C:\\Proyectos\\AdS-Proy (HEAD e8a7b74)"
+    },
+    {
+      "tipo": "reanudacion",
+      "commit": "6c355172ec5cef7612493c1d4b58c00ed353edbe",
+      "registrado": "2026-11-19T18:57:19+0000",
+      "cpu": {
+        "modelo": "12th Gen Intel(R) Core(TM) i7-12700KF",
+        "cpus_visibles_en_docker": 20,
+        "cpus_asignadas_a_docker": 20
+      },
+      "ram_asignada_a_docker_gb": 7.68,
+      "docker": {
+        "servidor": "29.9.3",
+        "cliente": "27.5.1",
+        "sistema": "Docker Desktop",
+        "kernel": "6.18.58.1-microsoft-standard-WSL2"
+      },
+      "etcd": "3.5.36",
+      "postgresql": "postgres (PostgreSQL) 16.16 (Debian 16.16-1.pgdg13+1)",
+      "python": {
+        "orquestador": "3.12.16",
+        "servicios": "Python 3.12.16"
+      },
+      "imagenes": {
+        "banco/servicio:latest": "sha256:a16f41334df944a4d43108d83f6bdd6699746b873f2cb7c8d6d016a1ecd020c7",
+        "banco/etcd:3.5.36": "sha256:72f63a4e0860d8a42407ebe6ad65066af13f5f72d2267da2c0bcc8e5554e7d25",
+        "banco/orquestador:latest": "sha256:9e2767b317fd8952907992eade477930c0faa05270c16a485d12f94c59c4263f",
+        "postgres:16": "sha256:3950ad7c3148ca2175ef1b6c36c9efbf78957ae8fbe8b3a5d7c35af50500382f"
+      },
+      "nota": "El sistema operativo y el modelo del equipo anfitrión (Windows) no son visibles desde Docker; agregarlos a mano en la tabla del paper.",
+      "parametros": {
+        "arq": "A1,A2,A3",
+        "escenarios": "P0,P1,P2,P3,P4",
+        "rep": 16,
+        "sin_conflicto": 4,
+        "semilla": 2026,
+        "piloto": false,
+        "p0": false,
+        "dir": null
+      }
+    },
+    {
+      "tipo": "reanudacion",
+      "commit": "3d6f154a9131603031e6b04e32569dc01d24b06f",
+      "registrado": "2026-11-19T19:24:42+0000",
+      "cpu": {
+        "modelo": "12th Gen Intel(R) Core(TM) i7-12700KF",
+        "cpus_visibles_en_docker": 20,
+        "cpus_asignadas_a_docker": 20
+      },
+      "ram_asignada_a_docker_gb": 7.68,
+      "docker": {
+        "servidor": "29.9.3",
+        "cliente": "27.5.1",
+        "sistema": "Docker Desktop",
+        "kernel": "6.18.58.1-microsoft-standard-WSL2"
+      },
+      "etcd": "3.5.36",
+      "postgresql": "postgres (PostgreSQL) 16.16 (Debian 16.16-1.pgdg13+1)",
+      "python": {
+        "orquestador": "3.12.16",
+        "servicios": "Python 3.12.16"
+      },
+      "imagenes": {
+        "banco/servicio:latest": "sha256:a16f41334df944a4d43108d83f6bdd6699746b873f2cb7c8d6d016a1ecd020c7",
+        "banco/etcd:3.5.36": "sha256:72f63a4e0860d8a42407ebe6ad65066af13f5f72d2267da2c0bcc8e5554e7d25",
+        "banco/orquestador:latest": "sha256:9e2767b317fd8952907992eade477930c0faa05270c16a485d12f94c59c4263f",
+        "postgres:16": "sha256:3950ad7c3148ca2175ef1b6c36c9efbf78957ae8fbe8b3a5d7c35af50500382f"
+      },
+      "nota": "El sistema operativo y el modelo del equipo anfitrión (Windows) no son visibles desde Docker; agregarlos a mano en la tabla del paper.",
+      "parametros": {
+        "arq": "A1,A2,A3",
+        "escenarios": "P0,P1,P2,P3,P4",
+        "rep": 16,
+        "sin_conflicto": 4,
+        "semilla": 2026,
+        "piloto": false,
+        "p0": false,
+        "dir": null
+      }
+    }
+  ]
+}

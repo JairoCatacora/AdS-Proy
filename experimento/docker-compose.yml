@@ -1,0 +1,29 @@
+# Orquestador + red de control.
+#
+# net_ctl: red de control (nunca se corta). La usan el orquestador y el monitor
+# para enviar solicitudes, leer estado y reiniciar. El sistema bajo prueba no
+# la usa para coordinarse.
+
+services:
+  orquestador:
+    build:
+      context: ..
+      dockerfile: experimento/Dockerfile
+    image: banco/orquestador:latest
+    container_name: orquestador
+    command: sleep infinity      # se usa con `docker compose exec orquestador ...`
+    working_dir: /app
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../experimento:/app/experimento
+      - ../tests:/app/tests
+      - ../resultados:/app/resultados
+    networks:
+      # IP fija: los contenedores del sistema solo aceptan tráfico de net_ctl desde aquí
+      net_ctl: {ipv4_address: 10.99.0.2}
+
+networks:
+  net_ctl:
+    name: net_ctl
+    internal: true
+    ipam: {config: [{subnet: 10.99.0.0/16, ip_range: 10.99.128.0/17}]}  # .0.2 = orquestador; el resto, dinámico

@@ -1,0 +1,8 @@
+# Banco de pruebas completo. Levantar con:  docker compose up -d --build
+name: banco-ambulancias
+
+include:
+  - experimento/docker-compose.yml          # orquestador + net_ctl
+  - arquitecturas/a1-centralizado/docker-compose.yml
+  - arquitecturas/a2-quorum/docker-compose.yml
+  - arquitecturas/a3-local/docker-compose.yml

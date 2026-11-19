@@ -1,0 +1,90 @@
+# A1 — Centralizado
+#
+# Plan de direcciones (10.<arq>.<enlace>.0/24):
+#   a1_net_ac      10.1.13.0/24   despacho-a .10   central-api .30
+#   a1_net_bc      10.1.23.0/24   despacho-b .20   central-api .30
+#   a1_net_site_c  10.1.103.0/24  central-api .30  postgres .31   (red local del sitio C, nunca se corta)
+#   net_ctl        (control)      todos los servicios, salvo postgres (vive solo en el sitio C)
+#
+# Toda la coordinación usa IPs fijas de las redes de enlace. Todas las redes son
+# `internal`: los contenedores no tienen ruta por defecto, así que un paquete hacia
+# un sitio cuyo enlace está cortado no puede "escaparse" por otra red.
+
+x-servicio: &servicio
+  build:
+    context: ../..
+    dockerfile: arquitecturas/Dockerfile.servicio
+  image: banco/servicio:latest
+  cap_add: [NET_ADMIN]       # necesario para tc netem (F2)
+  restart: "no"              # un reinicio invalida el ensayo; no lo ocultamos
+
+services:
+  a1-postgres:
+    image: postgres:16
+    container_name: a1-postgres
+    environment:
+      POSTGRES_USER: despacho
+      POSTGRES_PASSWORD: despacho
+      POSTGRES_DB: flota
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U despacho -d flota"]
+      interval: 1s
+      retries: 30
+    networks:
+      a1_net_site_c: {ipv4_address: 10.1.103.31}
+
+  a1-central-api:
+    <<: *servicio
+    container_name: a1-central-api
+    command: uvicorn main:app --app-dir /app/arquitecturas/a1-centralizado/central --host 0.0.0.0 --port 8000
+    environment:
+      POSTGRES_DSN: postgresql://despacho:despacho@10.1.103.31:5432/flota
+    depends_on:
+      a1-postgres: {condition: service_healthy}
+    networks:
+      a1_net_ac: {ipv4_address: 10.1.13.30}
+      a1_net_bc: {ipv4_address: 10.1.23.30}
+      a1_net_site_c: {ipv4_address: 10.1.103.30}
+      net_ctl: {}
+
+  a1-despacho-a:
+    <<: *servicio
+    container_name: a1-despacho-a
+    command: uvicorn main:app --app-dir /app/arquitecturas/a1-centralizado/despacho --host 0.0.0.0 --port 8000
+    environment:
+      CENTRO: A
+      CENTRAL_URL: http://10.1.13.30:8000
+    networks:
+      a1_net_ac: {ipv4_address: 10.1.13.10}
+      net_ctl: {}
+
+  a1-despacho-b:
+    <<: *servicio
+    container_name: a1-despacho-b
+    command: uvicorn main:app --app-dir /app/arquitecturas/a1-centralizado/despacho --host 0.0.0.0 --port 8000
+    environment:
+      CENTRO: B
+      CENTRAL_URL: http://10.1.23.30:8000
+    networks:
+      a1_net_bc: {ipv4_address: 10.1.23.20}
+      net_ctl: {}
+
+networks:
+  a1_net_ac:
+    name: a1_net_ac
+    internal: true
+    ipam: {config: [{subnet: 10.1.13.0/24}]}
+  a1_net_bc:
+    name: a1_net_bc
+    internal: true
+    ipam: {config: [{subnet: 10.1.23.0/24}]}
+  a1_net_site_c:
+    name: a1_net_site_c
+    internal: true
+    ipam: {config: [{subnet: 10.1.103.0/24}]}
+  # Red de control compartida: debe tener EXACTAMENTE la misma definición en
+  # experimento/docker-compose.yml y en cada arquitectura (así `include` la acepta).
+  net_ctl:
+    name: net_ctl
+    internal: true
+    ipam: {config: [{subnet: 10.99.0.0/16, ip_range: 10.99.128.0/17}]}  # .0.2 = orquestador; el resto, dinámico
